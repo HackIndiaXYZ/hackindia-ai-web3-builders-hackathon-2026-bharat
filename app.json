@@ -1,0 +1,96 @@
+{
+  "expo": {
+    "name": "Bharat Apadha Prabandhak",
+    "slug": "bharat-apadha-prabandham",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "bharat-apadha-prabandham",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#101E36"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "BAP needs your location to show nearby shelters and live weather alerts.",
+        "NSLocationAlwaysUsageDescription": "BAP uses your location to broadcast emergency crowd markers.",
+        "NSBluetoothAlwaysUsageDescription": "BAP uses Bluetooth to relay emergency messages to nearby devices without internet.",
+        "NSBluetoothPeripheralUsageDescription": "BAP uses Bluetooth to broadcast emergency alerts to nearby devices."
+      }
+    },
+    "android": {
+      "package": "com.bharataapda.prabandhan",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
+        "BLUETOOTH_ADVERTISE",
+        "FOREGROUND_SERVICE",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#101E36"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/images/icon.png"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "origin": "https://bharat-aapda-prabandham.expo.app/"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "BAP needs location for nearby shelter search and live weather alerts.",
+          "locationAlwaysPermission": "BAP uses background location for emergency crowd marker broadcasts.",
+          "locationWhenInUsePermission": "BAP needs location to show relevant disaster alerts and shelters near you."
+        }
+      ],
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true,
+          "modes": [
+            "peripheral",
+            "central"
+          ],
+          "bluetoothAlwaysPermission": "BAP uses Bluetooth to relay emergency messages between devices without internet."
+        }
+      ]
+    ],
+    "extra": {
+      "router": {
+        "origin": "https://bharat-aapda-prabandham.expo.app/"
+      },
+      "eas": {
+        "projectId": "ecd35074-d2af-47d6-9dca-773e418656d0"
+      }
+    }
+  }
+}
