@@ -1,1 +1,0 @@
-- [Expo map compatibility](expo-map-compatibility.md) — keep native map imports in platform-specific files so Expo web bundling never evaluates native-only modules.
