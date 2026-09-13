@@ -21,9 +21,9 @@ The architecture of BAP is designed for **maximum resilience**. It operates on a
 
 ```mermaid
 graph TD
-    subgraph Client Application [Mobile App - React Native / Expo]
-        UI[User Interface]
-        LocalDB[(AsyncStorage \n Offline Queue)]
+    subgraph Client Application [Mobile App / Web App]
+        UI[User Interface - React Native / Vanilla JS]
+        LocalDB[(AsyncStorage / LocalStorage)]
         OfflineAI[Local AI \n Rules & Dictionary]
     end
 
@@ -33,7 +33,7 @@ graph TD
 
     subgraph Cloud Infrastructure [Online Services]
         Supabase[(Supabase DB & Auth)]
-        EdgeFunc[Edge Functions \n Gemini & Translation]
+        Groq[Groq API \n Qwen3 LLaMA]
         MST[MST Blockchain \n RPC]
     end
 
@@ -43,7 +43,7 @@ graph TD
 
     UI --> NetManager
     NetManager -- Yes --> Supabase
-    NetManager -- Yes --> EdgeFunc
+    NetManager -- Yes --> Groq
     NetManager -- Yes --> MST
     
     NetManager -- No --> LocalDB
@@ -68,7 +68,13 @@ graph TD
 
 ### 🤖 Hybrid AI & Translation
 - **Offline Mode:** Uses a curated, on-device knowledge base to answer disaster queries and a phrase dictionary for instant 12-language translation.
-- **Online Mode:** Connects to Supabase Edge Functions powered by Gemini and LibreTranslate for dynamic, complex queries.
+- **Online Mode:** Connects to **Groq (Qwen3 8-27B)** for real-time, context-aware multilingual chat and translation.
+
+### 🌐 Lightweight Web App Version
+In addition to the mobile app, a fully functional Web App is available in the `web app/` directory.
+- **Stack:** Built with Vanilla HTML/JS/CSS and a Node.js + Express backend to ensure fast loading on slow connections.
+- **Deployment:** Pre-configured for seamless, zero-config deployment on **Render.com**.
+- **Features:** Includes a Glassmorphism UI, real-time public chat, mock-encrypted private chat, and the full Groq-powered AI suite.
 
 ### 🗺️ Real-Time Disaster Mapping
 - **Interactive Map:** Displays nearby shelters, hospitals, and community-reported danger zones. 
