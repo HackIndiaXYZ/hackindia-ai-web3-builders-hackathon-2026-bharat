@@ -332,3 +332,26 @@ npx expo export --platform web
 ```
 
 The Replit workflow is the normal way to keep the development server running while working in the workspace.
+
+## 12. Web App Version
+
+In addition to the React Native app, a lightweight Web App version has been developed to provide access via browser without requiring any installations.
+
+**Location:** `web app/` directory
+
+**Technology Stack:**
+- **Frontend:** Vanilla HTML, CSS (Glassmorphism UI), and JavaScript. No heavy frameworks, ensuring fast loading on slow networks.
+- **Backend:** Node.js + Express (`server.js`) handles static serving and REST API endpoints.
+- **State:** Browser `localStorage` for offline persistence (contacts, private chat history, user session).
+- **AI & Translation:** Powered by the **Groq API (Qwen3 8-27B model)** for real-time multilingual AI safety assistance and offline-fallback disaster translation.
+
+**Key Features:**
+- **Multilingual AI Assistant:** Understands and responds in 12+ Indian languages natively using Groq.
+- **Translator:** Translates critical disaster phrases instantly.
+- **Public & Private Chat:** Real-time synced public community board and simulated end-to-end encrypted private chats.
+- **Web3 Ready:** `ethers` dependency is installed and the `create alert` API endpoint mocks transaction anchoring.
+
+**Deployment:**
+The Web App is fully configured for deployment on **Render.com**.
+- `render.yaml` handles build (`npm install`) and start (`node server.js`) configurations automatically.
+- Environment variables (`GROQ_API_KEY`) are managed securely via the Render dashboard.
