@@ -15,7 +15,7 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  return <Stack screenOptions={{ headerBackTitle: 'Back', contentStyle: { backgroundColor: '#101E36' } }}><Stack.Screen name="index" options={{ headerShown: false }} /><Stack.Screen name="(tabs)" options={{ headerShown: false }} /><Stack.Screen name="ai" options={{ headerShown: false }} /><Stack.Screen name="public-chat" options={{ headerShown: false }} /><Stack.Screen name="private-chat/[id]" options={{ headerShown: false }} /></Stack>;
+  return <Stack screenOptions={{ headerBackTitle: 'Back', contentStyle: { backgroundColor: '#101E36' } }}><Stack.Screen name="index" options={{ headerShown: false }} /><Stack.Screen name="login" options={{ headerShown: false }} /><Stack.Screen name="(tabs)" options={{ headerShown: false }} /><Stack.Screen name="ai" options={{ headerShown: false }} /><Stack.Screen name="public-chat" options={{ headerShown: false }} /><Stack.Screen name="private-chat/[id]" options={{ headerShown: false }} /></Stack>;
 }
 
 export default function RootLayout() {

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Bharat Apadha Prabandhak",
+    "name": "Bharat Aapda Prabandhan",
     "slug": "bharat-apadha-prabandham",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -89,7 +89,7 @@
         "origin": "https://bharat-aapda-prabandham.expo.app/"
       },
       "eas": {
-        "projectId": "ecd35074-d2af-47d6-9dca-773e418656d0"
+        "projectId": "679c4349-55d9-4061-aad1-f63b4863a2f8"
       }
     }
   }

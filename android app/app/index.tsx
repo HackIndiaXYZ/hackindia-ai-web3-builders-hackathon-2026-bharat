@@ -6,15 +6,50 @@ import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 
+import { useApp } from '@/context/AppContext';
+
 const ONBOARDING_KEY = 'bap-onboarding-seen';
 
 export default function OnboardingScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { userProfile, isHydrated } = useApp();
   const [checking, setChecking] = useState(true);
-  useEffect(() => { AsyncStorage.getItem(ONBOARDING_KEY).then((seen) => { if (seen) router.replace('/(tabs)'); else setChecking(false); }).catch(() => setChecking(false)); }, []);
-  if (checking) return <View style={[styles.loading, { backgroundColor: colors.background }]}><ActivityIndicator color={colors.sageLight} /></View>;
-  return <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 20 }]}><View style={styles.brandRow}><View style={[styles.brandMark, { backgroundColor: colors.sage }]}><Feather name="shield" size={21} color={colors.primaryForeground} /></View><Text style={[styles.brandText, { color: colors.foreground }]}>BAP / 01</Text></View><View style={styles.center}><View style={[styles.iconRing, { borderColor: colors.sage }]}><Image source={require('@/assets/images/icon.png')} style={styles.icon} /></View><Text style={[styles.kicker, { color: colors.sageLight }]}>SMART INDIA HACKATHON 2026</Text><Text style={[styles.title, { color: colors.foreground }]}>Safety moves faster{String.fromCharCode(10)}when we move together.</Text><Text style={[styles.body, { color: colors.mutedForeground }]}>Bharat Apadha Prabandhak brings verified alerts, local guidance, and resilient communication into one calm place.</Text><View style={styles.featureList}><Feature icon="radio" text="Government alerts, verified" colors={colors} /><Feature icon="wifi-off" text="Ready when networks are not" colors={colors} /><Feature icon="users" text="Community-powered response" colors={colors} /></View></View><Pressable testID="enter-app" accessibilityRole="button" onPress={() => { AsyncStorage.setItem(ONBOARDING_KEY, 'true').catch(() => undefined); router.replace('/(tabs)'); }} style={({ pressed }) => [styles.enterButton, { backgroundColor: colors.sage }, pressed && styles.pressed]}><Text style={[styles.enterText, { color: colors.primaryForeground }]}>Enter emergency network</Text><Feather name="arrow-right" size={18} color={colors.primaryForeground} /></Pressable><Text style={[styles.footer, { color: colors.mutedForeground }]}>Works offline · Built for India</Text></View>;
+
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    AsyncStorage.getItem(ONBOARDING_KEY)
+      .then((seen) => {
+        if (userProfile) {
+          router.replace('/(tabs)');
+        } else if (seen) {
+          router.replace('/login');
+        } else {
+          setChecking(false);
+        }
+      })
+      .catch(() => setChecking(false));
+  }, [isHydrated, userProfile]);
+
+  if (!isHydrated || checking) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.background }]}>
+        <ActivityIndicator color={colors.sageLight} size="large" />
+      </View>
+    );
+  }
+
+  const handleEnter = () => {
+    AsyncStorage.setItem(ONBOARDING_KEY, 'true').catch(() => undefined);
+    if (userProfile) {
+      router.replace('/(tabs)');
+    } else {
+      router.replace('/login');
+    }
+  };
+
+  return <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 20 }]}><View style={styles.brandRow}><View style={[styles.brandMark, { backgroundColor: colors.sage }]}><Feather name="shield" size={21} color={colors.primaryForeground} /></View><Text style={[styles.brandText, { color: colors.foreground }]}>BAP / 01</Text></View><View style={styles.center}><View style={[styles.iconRing, { borderColor: colors.sage }]}><Image source={require('@/assets/images/icon.png')} style={styles.icon} /></View><Text style={[styles.kicker, { color: colors.sageLight }]}>SMART INDIA HACKATHON 2026</Text><Text style={[styles.title, { color: colors.foreground }]}>Safety moves faster{String.fromCharCode(10)}when we move together.</Text><Text style={[styles.body, { color: colors.mutedForeground }]}>Bharat Apadha Prabandham brings verified alerts, local guidance, and resilient communication into one calm place.</Text><View style={styles.featureList}><Feature icon="radio" text="Government alerts, verified" colors={colors} /><Feature icon="wifi-off" text="Ready when networks are not" colors={colors} /><Feature icon="users" text="Community-powered response" colors={colors} /></View></View><Pressable testID="enter-app" accessibilityRole="button" onPress={handleEnter} style={({ pressed }) => [styles.enterButton, { backgroundColor: colors.sage }, pressed && styles.pressed]}><Text style={[styles.enterText, { color: colors.primaryForeground }]}>Enter emergency network</Text><Feather name="arrow-right" size={18} color={colors.primaryForeground} /></Pressable><Text style={[styles.footer, { color: colors.mutedForeground }]}>Works offline · Built for India</Text></View>;
 }
 
 function Feature({ icon, text, colors }: { icon: React.ComponentProps<typeof Feather>['name']; text: string; colors: ReturnType<typeof useColors> }) { return <View style={styles.feature}><Feather name={icon} size={16} color={colors.sageLight} /><Text style={[styles.featureText, { color: colors.foreground }]}>{text}</Text></View>; }

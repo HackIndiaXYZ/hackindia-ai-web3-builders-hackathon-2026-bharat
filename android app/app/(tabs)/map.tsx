@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { MapCanvas } from '@/components/MapCanvas';
@@ -9,6 +9,8 @@ import { useApp } from '@/context/AppContext';
 import { useColors } from '@/hooks/useColors';
 import { fetchNearbyEmergencyPlaces, type EmergencyPlace } from '@/lib/alerts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { availableOfflinePacks, getDownloadedPacks, saveDownloadedPackStatus, type OfflineRegionPack } from '@/lib/offlineMaps';
 
 type Region = { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number };
 
@@ -26,9 +28,45 @@ export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const { crowdMarkers, addCrowdMarker, isOffline } = useApp();
   const [region, setRegion] = useState<Region>(defaultRegion);
+  const [activePackId, setActivePackId] = useState<string>('delhi-ncr');
+  const [downloadedPacks, setDownloadedPacks] = useState<Record<string, boolean>>({ 'delhi-ncr': true, 'uttar-pradesh': true });
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+
   const [permission, requestPermission] = Location.useForegroundPermissions();
   const [markerSheet, setMarkerSheet] = useState(false);
+  const [packsModal, setPacksModal] = useState(false);
   const [layer, setLayer] = useState<'all' | 'safe' | 'danger'>('all');
+
+  useEffect(() => {
+    getDownloadedPacks().then((packs) => setDownloadedPacks(packs)).catch(() => undefined);
+  }, []);
+
+  const activePack = availableOfflinePacks.find((p) => p.id === activePackId);
+
+  const handleSelectPack = (pack: OfflineRegionPack) => {
+    setActivePackId(pack.id);
+    setRegion(pack.center);
+  };
+
+  const handleDownloadPack = (pack: OfflineRegionPack) => {
+    if (downloadingId) return;
+    setDownloadingId(pack.id);
+    setDownloadProgress(10);
+
+    const interval = setInterval(() => {
+      setDownloadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setDownloadingId(null);
+          void saveDownloadedPackStatus(pack.id, true);
+          setDownloadedPacks((cur) => ({ ...cur, [pack.id]: true }));
+          return 100;
+        }
+        return prev + 25;
+      });
+    }, 400);
+  };
 
   const requestLocation = async () => {
     const result = await requestPermission();
@@ -47,7 +85,8 @@ export default function MapScreen() {
     retry: 1,
   });
 
-  const shelters = isOffline ? fallbackShelters : (liveShelters ?? fallbackShelters);
+  const activeShelters = activePack ? activePack.shelters : fallbackShelters;
+  const shelters = isOffline ? activeShelters : (liveShelters ?? activeShelters);
   const shownCrowd = crowdMarkers.filter((item) => layer === 'all' || item.kind.toLowerCase() === layer);
 
   return (
@@ -59,8 +98,38 @@ export default function MapScreen() {
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           {sheltersFetching ? <ActivityIndicator size="small" color={colors.sageLight} /> : null}
-          <StatusPill label={isOffline ? 'Offline mode' : 'Live map'} icon={isOffline ? 'wifi-off' : 'navigation'} />
+          <Pressable onPress={() => setPacksModal(true)}>
+            <StatusPill label={isOffline ? 'Offline maps' : 'Live map'} icon={isOffline ? 'download-cloud' : 'navigation'} />
+          </Pressable>
         </View>
+      </View>
+
+      {/* Region Selector Bar */}
+      <View style={styles.regionBar}>
+        {availableOfflinePacks.map((pack) => {
+          const isSelected = activePackId === pack.id;
+          return (
+            <Pressable
+              key={pack.id}
+              onPress={() => handleSelectPack(pack)}
+              style={[
+                styles.regionTab,
+                {
+                  backgroundColor: isSelected ? colors.sage : colors.card,
+                  borderColor: isSelected ? colors.sage : colors.border,
+                },
+              ]}
+            >
+              <Feather name="map-pin" size={12} color={isSelected ? colors.primaryForeground : colors.sageLight} />
+              <Text style={[styles.regionTabText, { color: isSelected ? colors.primaryForeground : colors.foreground }]}>
+                {pack.name.split(' ')[0]} {pack.name.split(' ')[1] || ''}
+              </Text>
+            </Pressable>
+          );
+        })}
+        <Pressable onPress={() => setPacksModal(true)} style={[styles.managePacksBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Feather name="download-cloud" size={14} color={colors.sageLight} />
+        </Pressable>
       </View>
 
       <View style={styles.mapWrap}>
@@ -75,7 +144,7 @@ export default function MapScreen() {
         <View style={[styles.offlineBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Feather name={isOffline ? 'download-cloud' : 'radio'} size={13} color={colors.sageLight} />
           <Text style={[styles.offlineText, { color: colors.foreground }]}>
-            {isOffline ? `Cached · ${fallbackShelters.length} locations` : `Live OSM · ${shelters.length} nearby`}
+            {activePack ? `${activePack.name} · ${shelters.length} locations` : `Cached · ${shelters.length} locations`}
           </Text>
         </View>
         <Pressable onPress={requestLocation} style={[styles.locate, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -112,6 +181,56 @@ export default function MapScreen() {
           <Text style={[styles.addText, { color: colors.primaryForeground }]}>Report a location</Text>
         </Pressable>
       </View>
+
+      {/* Offline Region Pack Downloader Modal */}
+      <Modal visible={packsModal} transparent animationType="slide" onRequestClose={() => setPacksModal(false)}>
+        <Pressable style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]} onPress={() => setPacksModal(false)}>
+          <View style={[styles.sheet, { backgroundColor: colors.card }]}>
+            <View style={styles.sheetHandle} />
+            <Text style={[styles.sheetTitle, { color: colors.foreground }]}>Offline Map Packages</Text>
+            <Text style={[styles.sheetBody, { color: colors.mutedForeground }]}>
+              Download regional map packages for Delhi NCR and Uttar Pradesh to access offline hazard maps and shelters without cell service.
+            </Text>
+
+            {availableOfflinePacks.map((pack) => {
+              const isDownloaded = downloadedPacks[pack.id];
+              const isDownloading = downloadingId === pack.id;
+              return (
+                <View key={pack.id} style={[styles.packCard, { borderColor: colors.border, backgroundColor: colors.input }]}>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={[styles.packName, { color: colors.foreground }]}>{pack.name}</Text>
+                      <Text style={[styles.packSize, { color: colors.sageLight }]}>{pack.sizeMB} MB</Text>
+                    </View>
+                    <Text style={[styles.packDesc, { color: colors.mutedForeground }]}>{pack.description}</Text>
+                  </View>
+                  <Pressable
+                    onPress={() => (isDownloaded ? handleSelectPack(pack) : handleDownloadPack(pack))}
+                    style={[
+                      styles.packBtn,
+                      { backgroundColor: isDownloaded ? colors.sage : colors.card, borderColor: colors.sage },
+                    ]}
+                  >
+                    {isDownloading ? (
+                      <Text style={[styles.packBtnText, { color: colors.sageLight }]}>{downloadProgress}%</Text>
+                    ) : isDownloaded ? (
+                      <>
+                        <Feather name="check" size={12} color={colors.primaryForeground} />
+                        <Text style={[styles.packBtnText, { color: colors.primaryForeground }]}>Ready</Text>
+                      </>
+                    ) : (
+                      <>
+                        <Feather name="download" size={12} color={colors.foreground} />
+                        <Text style={[styles.packBtnText, { color: colors.foreground }]}>Get</Text>
+                      </>
+                    )}
+                  </Pressable>
+                </View>
+              );
+            })}
+          </View>
+        </Pressable>
+      </Modal>
 
       <Modal visible={markerSheet} transparent animationType="slide" onRequestClose={() => setMarkerSheet(false)}>
         <Pressable style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]} onPress={() => setMarkerSheet(false)}>
@@ -186,4 +305,14 @@ const styles = StyleSheet.create({
   reportIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   reportTitle: { fontSize: 13, fontFamily: 'Inter_700Bold' },
   reportBody: { fontSize: 11, fontFamily: 'Inter_400Regular', marginTop: 3 },
+  regionBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, marginBottom: 12 },
+  regionTab: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
+  regionTabText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
+  managePacksBtn: { width: 34, height: 34, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginLeft: 'auto' },
+  packCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, borderWidth: 1, gap: 12 },
+  packName: { fontSize: 13, fontFamily: 'Inter_700Bold' },
+  packSize: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
+  packDesc: { fontSize: 11, fontFamily: 'Inter_400Regular', lineHeight: 16 },
+  packBtn: { minWidth: 64, height: 36, borderRadius: 10, borderWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingHorizontal: 10 },
+  packBtnText: { fontSize: 11, fontFamily: 'Inter_700Bold' },
 });

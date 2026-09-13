@@ -13,7 +13,7 @@ import { useColors } from '@/hooks/useColors';
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { alerts, contacts, publicMessages, isOffline, addContact, removeContact } = useApp();
+  const { alerts, contacts, publicMessages, isOffline, addContact, removeContact, userProfile } = useApp();
   const [weather, setWeather] = useState({ temp: '28°', city: 'Bengaluru', loading: false });
   const [permission] = Location.useForegroundPermissions();
   const [contactModalOpen, setContactModalOpen] = useState(false);
@@ -81,6 +81,36 @@ export default function HomeScreen() {
         </View>
         <View style={styles.statusRow}><Text style={[styles.locationText, { color: colors.mutedForeground }]}>{weather.city} · Offline-first protection</Text><StatusPill label={isOffline ? 'Offline ready' : 'Connected'} icon={isOffline ? 'wifi-off' : 'wifi'} /></View>
 
+        {/* My Emergency ID Card */}
+        <Pressable
+          onPress={() => router.push('/login')}
+          style={({ pressed }) => [
+            styles.profileCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+            pressed && styles.pressed,
+          ]}
+        >
+          <View style={[styles.avatarCircle, { backgroundColor: colors.sage }]}>
+            <Text style={[styles.avatarInitial, { color: colors.primaryForeground }]}>
+              {userProfile?.name ? userProfile.name[0].toUpperCase() : 'U'}
+            </Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={[styles.profileName, { color: colors.foreground }]}>
+                {userProfile?.name || 'Set up Emergency Identity'}
+              </Text>
+              <Feather name="shield" size={12} color={colors.sageLight} />
+            </View>
+            <Text style={[styles.profileSub, { color: colors.mutedForeground }]}>
+              {userProfile
+                ? `Receiving ID: ${userProfile.receivingId} (${userProfile.phoneNumber})`
+                : 'Tap to register name & mobile number for offline messaging'}
+            </Text>
+          </View>
+          <Feather name="edit-3" size={16} color={colors.sageLight} />
+        </Pressable>
+
         <SectionHeader title="Government alerts" action="View all" onAction={() => router.push('/(tabs)/alerts')} />
         {alerts.length > 0 ? <View style={styles.alertStack}>{alerts.slice(0, 2).map((alert) => <AlertCard key={alert.id} alert={alert} compact onPress={() => router.push('/(tabs)/alerts')} />)}</View> : <Card style={styles.emptyCard}><EmptyState icon="radio" title="No alerts on this device" body="Verified warnings will appear here when you add or receive them." /></Card>}
 
@@ -120,8 +150,13 @@ const styles = StyleSheet.create({
   heading: { fontSize: 28, lineHeight: 31, fontFamily: 'Inter_700Bold', letterSpacing: -0.8 },
   weatherBox: { width: 57, height: 42, borderRadius: 13, borderWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
   temp: { fontSize: 13, fontFamily: 'Inter_700Bold' },
-  statusRow: { marginHorizontal: 20, marginTop: 12, marginBottom: 25, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  statusRow: { marginHorizontal: 20, marginTop: 12, marginBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   locationText: { flex: 1, fontSize: 11, fontFamily: 'Inter_400Regular' },
+  profileCard: { marginHorizontal: 18, marginBottom: 20, borderRadius: 16, borderWidth: 1, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatarCircle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  avatarInitial: { fontSize: 16, fontFamily: 'Inter_700Bold' },
+  profileName: { fontSize: 14, fontFamily: 'Inter_700Bold' },
+  profileSub: { fontSize: 11, fontFamily: 'Inter_400Regular', marginTop: 3 },
   alertStack: { gap: 10, marginHorizontal: 18, marginBottom: 25 },
   emptyCard: { marginHorizontal: 18, marginBottom: 25, padding: 4 },
   peopleHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

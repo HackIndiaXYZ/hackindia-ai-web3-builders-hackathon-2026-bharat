@@ -3,8 +3,18 @@ import React, { createContext, PropsWithChildren, useCallback, useContext, useEf
 import { AlertItem, Contact, CrowdMarker, initialAlerts, initialCrowdMarkers, initialPrivateMessages, initialPublicMessages, Message, Severity } from '@/constants/data';
 import { createMessageHash } from '@/lib/hash';
 import { useSync, pushAlert, pushPublicMessage, pushCrowdMarker } from '@/hooks/useSync';
+import { setMeshMessageListener, broadcastPrivateMessage, startMeshScanning, type MeshMessage } from '@/lib/mesh';
+
+export type UserProfile = {
+  name: string;
+  phoneNumber: string;
+  receivingId: string;
+  createdAt: number;
+};
 
 type AppContextValue = {
+  isHydrated: boolean;
+  userProfile: UserProfile | null;
   alerts: AlertItem[];
   contacts: Contact[];
   publicMessages: Message[];
@@ -13,6 +23,8 @@ type AppContextValue = {
   isOffline: boolean;
   syncStatus: import('@/hooks/useSync').SyncStatus;
   setIsOffline: (value: boolean) => void;
+  saveUserProfile: (name: string, phoneNumber: string) => UserProfile;
+  logoutUserProfile: () => void;
   addContact: (name: string, phoneNumber: string) => void;
   removeContact: (contactId: string) => void;
   addAlert: (alert: Omit<AlertItem, 'id' | 'time' | 'source'>) => void;
@@ -21,7 +33,8 @@ type AppContextValue = {
   addCrowdMarker: (kind: CrowdMarker['kind']) => void;
 };
 
-const STORAGE_KEY = 'bap-local-state-v3';
+const STORAGE_KEY = 'bap-local-state-v4';
+const PROFILE_KEY = 'bap-user-profile-v2';
 const AppContext = createContext<AppContextValue | null>(null);
 
 function makeId(prefix: string): string {
@@ -29,6 +42,8 @@ function makeId(prefix: string): string {
 }
 
 export function AppProvider({ children }: PropsWithChildren) {
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [alerts, setAlerts] = useState<AlertItem[]>(initialAlerts);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [publicMessages, setPublicMessages] = useState<Message[]>(initialPublicMessages);
@@ -42,30 +57,69 @@ export function AppProvider({ children }: PropsWithChildren) {
   // -------------------------------------------------------------------------
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((value) => {
-      if (value) {
-        try {
-          const saved = JSON.parse(value) as Partial<{ alerts: AlertItem[]; contacts: Contact[]; publicMessages: Message[]; privateMessages: Record<string, Message[]>; crowdMarkers: CrowdMarker[]; isOffline: boolean }>;
+    async function hydrate() {
+      try {
+        // Read dedicated user profile first to ensure login is NEVER lost
+        const savedProfile = await AsyncStorage.getItem(PROFILE_KEY);
+        let loadedProfile: UserProfile | null = null;
+        if (savedProfile) {
+          try {
+            loadedProfile = JSON.parse(savedProfile);
+            if (loadedProfile) setUserProfile(loadedProfile);
+          } catch {
+            // Ignore
+          }
+        }
+
+        const value = await AsyncStorage.getItem(STORAGE_KEY);
+        if (value) {
+          const saved = JSON.parse(value) as Partial<{ userProfile: UserProfile | null; alerts: AlertItem[]; contacts: Contact[]; publicMessages: Message[]; privateMessages: Record<string, Message[]>; crowdMarkers: CrowdMarker[]; isOffline: boolean }>;
+          if (!loadedProfile && saved.userProfile) setUserProfile(saved.userProfile);
           if (saved.alerts) setAlerts(saved.alerts);
           if (saved.contacts) setContacts(saved.contacts);
           if (saved.publicMessages) setPublicMessages(saved.publicMessages);
           if (saved.privateMessages) setPrivateMessages(saved.privateMessages);
           if (saved.crowdMarkers) setCrowdMarkers(saved.crowdMarkers);
           if (typeof saved.isOffline === 'boolean') setIsOffline(saved.isOffline);
-        } catch {
-          // Keep the safe built-in offline data if local state is unreadable.
         }
+      } catch {
+        // Safe fallback
+      } finally {
+        setIsHydrated(true);
       }
-      hydrated.current = true;
-    }).catch(() => {
-      hydrated.current = true;
-    });
+    }
+
+    void hydrate();
   }, []);
 
   useEffect(() => {
-    if (!hydrated.current) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ alerts, contacts, publicMessages, privateMessages, crowdMarkers, isOffline })).catch(() => undefined);
-  }, [alerts, contacts, publicMessages, privateMessages, crowdMarkers, isOffline]);
+    if (!isHydrated) return;
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ userProfile, alerts, contacts, publicMessages, privateMessages, crowdMarkers, isOffline })).catch(() => undefined);
+  }, [isHydrated, userProfile, alerts, contacts, publicMessages, privateMessages, crowdMarkers, isOffline]);
+
+  // -------------------------------------------------------------------------
+  // User Profile & Receiving ID Management
+  // -------------------------------------------------------------------------
+
+  const saveUserProfile = (name: string, phoneNumber: string): UserProfile => {
+    const rawDigits = phoneNumber.replace(/\D/g, '');
+    const cleanPhone = rawDigits.length >= 10 ? `+91 ${rawDigits.slice(-10, -5)} ${rawDigits.slice(-5)}` : phoneNumber.trim();
+    const receivingId = `BAP-${rawDigits.slice(-10) || Math.floor(1000000000 + Math.random() * 9000000000)}`;
+    const profile: UserProfile = {
+      name: name.trim(),
+      phoneNumber: cleanPhone,
+      receivingId,
+      createdAt: Date.now(),
+    };
+    setUserProfile(profile);
+    AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(profile)).catch(() => undefined);
+    return profile;
+  };
+
+  const logoutUserProfile = () => {
+    setUserProfile(null);
+    AsyncStorage.removeItem(PROFILE_KEY).catch(() => undefined);
+  };
 
   // -------------------------------------------------------------------------
   // Server sync (Supabase Realtime)
@@ -135,8 +189,90 @@ export function AppProvider({ children }: PropsWithChildren) {
 
   const createMessage = (text: string): Message => {
     const timestamp = Date.now();
-    return { id: makeId('message'), sender: 'You', text, timestamp, hash: createMessageHash('You', text, timestamp), verified: true };
+    const senderName = userProfile?.name ? `${userProfile.name}` : 'You';
+    return { id: makeId('message'), sender: senderName, text, timestamp, hash: createMessageHash(senderName, text, timestamp), verified: true };
   };
+
+  // -------------------------------------------------------------------------
+  // Global Mesh Message Listener — receives chats from BLE / P2P peers
+  // -------------------------------------------------------------------------
+
+  useEffect(() => {
+    void startMeshScanning();
+
+    const unsubscribe = setMeshMessageListener((meshMsg: MeshMessage) => {
+      if (meshMsg.recipientId) {
+        const cleanRecipient = meshMsg.recipientId.replace(/\D/g, '');
+        const cleanSender = meshMsg.sender.replace(/\D/g, '') || meshMsg.sender;
+
+        const incomingMsg: Message = {
+          id: meshMsg.id,
+          sender: meshMsg.sender,
+          text: meshMsg.text,
+          timestamp: meshMsg.timestamp,
+          hash: meshMsg.hash,
+          verified: true,
+        };
+
+        const convKey = cleanRecipient || cleanSender;
+
+        setPrivateMessages((current) => {
+          const existing = current[convKey] || [];
+          if (existing.some((m) => m.hash === meshMsg.hash)) return current;
+          return { ...current, [convKey]: [...existing, incomingMsg] };
+        });
+
+        // Also add to sender's thread key if different
+        if (cleanSender && cleanSender !== convKey) {
+          setPrivateMessages((current) => {
+            const existing = current[cleanSender] || [];
+            if (existing.some((m) => m.hash === meshMsg.hash)) return current;
+            return { ...current, [cleanSender]: [...existing, incomingMsg] };
+          });
+        }
+
+        // Auto-add contact if sender is missing from contacts list
+        if (cleanSender) {
+          setContacts((current) => {
+            if (current.some((c) => c.id === cleanSender || c.phoneNumber === cleanSender)) return current;
+            const initials = meshMsg.sender.split(/\s+/).map((p) => p[0]).join('').slice(0, 2).toUpperCase() || 'EM';
+            const colors = ['#4F8DAA', '#8A6CC8', '#C47754', '#2D8A81'];
+            return [
+              ...current,
+              {
+                id: cleanSender,
+                name: meshMsg.sender,
+                phoneNumber: cleanSender,
+                role: 'Emergency contact (Mesh)',
+                initials,
+                color: colors[current.length % colors.length],
+                lastSeen: 'Active now on mesh',
+              },
+            ];
+          });
+        }
+      } else {
+        // Public message
+        const incomingMsg: Message = {
+          id: meshMsg.id,
+          sender: meshMsg.sender,
+          text: meshMsg.text,
+          timestamp: meshMsg.timestamp,
+          hash: meshMsg.hash,
+          verified: true,
+        };
+
+        setPublicMessages((current) => {
+          if (current.some((m) => m.hash === meshMsg.hash)) return current;
+          return [...current, incomingMsg];
+        });
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   const sendPublicMessage = (text: string) => {
     const trimmed = text.trim();
@@ -150,7 +286,12 @@ export function AppProvider({ children }: PropsWithChildren) {
   const sendPrivateMessage = (contactId: string, text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    setPrivateMessages((current) => ({ ...current, [contactId]: [...(current[contactId] || []), createMessage(trimmed)] }));
+    const msg = createMessage(trimmed);
+    setPrivateMessages((current) => ({ ...current, [contactId]: [...(current[contactId] || []), msg] }));
+
+    // Broadcast over P2P mesh
+    const senderName = userProfile?.name || 'Emergency Contact';
+    void broadcastPrivateMessage(senderName, contactId, trimmed);
   };
 
   const addCrowdMarker = (kind: CrowdMarker['kind']) => {
@@ -166,9 +307,9 @@ export function AppProvider({ children }: PropsWithChildren) {
   };
 
   const value = useMemo(
-    () => ({ alerts, contacts, publicMessages, privateMessages, crowdMarkers, isOffline, syncStatus, setIsOffline, addContact, removeContact, addAlert, sendPublicMessage, sendPrivateMessage, addCrowdMarker }),
+    () => ({ isHydrated, userProfile, alerts, contacts, publicMessages, privateMessages, crowdMarkers, isOffline, syncStatus, setIsOffline, saveUserProfile, logoutUserProfile, addContact, removeContact, addAlert, sendPublicMessage, sendPrivateMessage, addCrowdMarker }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [alerts, contacts, publicMessages, privateMessages, crowdMarkers, isOffline, syncStatus],
+    [isHydrated, userProfile, alerts, contacts, publicMessages, privateMessages, crowdMarkers, isOffline, syncStatus],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

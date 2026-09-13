@@ -1,10 +1,10 @@
-# Bharat Apadha Prabandhak: Project Guide
+# Bharat Aapda Prabandhan: Mobile App Guide
 
-This guide explains the project for someone seeing it for the first time. It covers the technology, the important folders, how the app starts, what each screen does today, and which parts are still prototypes.
+This guide explains the React Native mobile application for someone seeing it for the first time. It covers the technology, the important folders, how the app starts, what each screen does today, and which parts are still prototypes.
 
 ## 1. What this project is
 
-Bharat Apadha Prabandhak is an offline-first disaster-response mobile app prototype for India. Its interface brings together:
+Bharat Aapda Prabandhan is an offline-first disaster-response mobile app prototype for India. Its interface brings together:
 
 - Local emergency contacts
 - Alert creation and viewing
@@ -14,12 +14,6 @@ Bharat Apadha Prabandhak is an offline-first disaster-response mobile app protot
 - Public and private message screens
 
 The app is designed to keep its core state on the device so it can continue to display and create information when connectivity is unavailable.
-
-The main application is located in the `bharat-apadha-prabandham` folder:
-
-| Folder | What it is |
-| --- | --- |
-| `bharat-apadha-prabandham` | The primary React Native + Expo app. This is the app started by the Replit Expo workflow. |
 
 ## 2. Technology stack
 
@@ -57,25 +51,18 @@ npm run build     # creates a static Expo build through scripts/build.js
 npm run serve     # serves the generated static build with Node.js
 ```
 
-The Replit workflow runs the package from the repository root with:
-
-```bash
-pnpm --filter @workspace/bharat-apadha-prabandham run dev
-```
-
 For local development:
 
 ```bash
-cd bharat-apadha-prabandham
-pnpm install
-pnpm dev
+cd "android app"
+npm install
+npm run dev
 ```
 
 You can then:
 
-1. Open the web preview when Expo prints a web URL.
-2. Scan the Expo QR code with Expo Go for a physical-device preview.
-3. Use an Android or iOS simulator if one is available.
+1. Scan the Expo QR code with Expo Go for a physical-device preview.
+2. Use an Android or iOS simulator if one is available.
 
 ## 4. Startup sequence
 
@@ -144,27 +131,6 @@ The Home screen shows:
 - Emergency contacts.
 - A link to the public community room.
 
-Weather behavior:
-
-1. The app starts with `28°` and `Bengaluru`.
-2. If location permission is granted, it asks the device for the current coordinates.
-3. It calls Open-Meteo:
-
-   ```text
-   https://api.open-meteo.com/v1/forecast
-   ```
-
-4. It displays the current temperature.
-5. If the request fails, the previous display remains.
-
-Contacts:
-
-- A contact requires at least 10 digits.
-- The normalized phone number is used as the local contact ID.
-- Duplicate phone numbers are rejected.
-- Removing a contact also removes its local private-message history.
-- Selecting a contact opens `app/private-chat/[id].tsx`.
-
 ### Alerts: `app/(tabs)/alerts.tsx`
 
 The Alerts screen lists locally stored alert records. A user can add an alert with:
@@ -175,7 +141,6 @@ The Alerts screen lists locally stored alert records. A user can add an alert wi
 - Severity: Critical, High, Moderate, or Low
 
 The store adds the current time label, generates an ID, and marks the source as `Community verified`.
-
 Alerts are synchronized with the Supabase database. When offline, alerts are stored locally and will be pushed to the backend once connectivity is restored.
 
 ### Map: `app/(tabs)/map.tsx`
@@ -196,31 +161,9 @@ Native behavior:
 - `components/MapCanvas.native.tsx` uses `react-native-maps`.
 - It draws markers, a polygon risk area, and a circular risk area.
 
-Web behavior:
-
-- `components/MapCanvas.tsx` is selected instead.
-- It renders a stylized offline map-like canvas with positioned pins and risk blobs.
-- It is not backed by map tiles or a geographic map service.
-
-Crowd reports are generated locally with approximate coordinates near the default region and persist through AsyncStorage.
-
 ### Translator: `app/(tabs)/translator.tsx`
 
-The Translator screen supports 13 language choices:
-
-- English
-- Hindi
-- Bengali
-- Tamil
-- Telugu
-- Marathi
-- Gujarati
-- Kannada
-- Malayalam
-- Punjabi
-- Odia
-- Urdu
-- Assamese
+The Translator screen supports 13 language choices.
 
 The current implementation features a two-tier translation system:
 
@@ -233,8 +176,6 @@ The assistant operates on a two-tier strategy:
 
 1. **Local (Offline):** A deterministic, rule-based intent classifier with a curated knowledge base for disaster scenarios. It checks for keywords like `first aid`, `earthquake`, or `flood`.
 2. **Remote (Online):** When connected, complex queries are routed to the Gemini API via a Supabase Edge Function.
-
-This ensures zero-download instant responses offline, while unlocking full AI capabilities when online. Messages receive local hash labels and are displayed as verified.
 
 ### Public room: `app/public-chat.tsx`
 
@@ -287,9 +228,7 @@ The app uses:
 - Inter typography
 - Safe-area-aware layouts
 - Keyboard-aware input screens
-- Native and web-specific map rendering
-
-The Expo web target is supported, but it is a browser rendering of a React Native app. Native-only capabilities such as precise device location and native map behavior depend on the platform and permissions.
+- Native map rendering
 
 ## 9. Current limitations and honest implementation status
 
@@ -320,38 +259,3 @@ If you are new to the codebase, read these in order:
 6. `app/(tabs)/map.tsx` and `components/MapCanvas*.tsx` — platform-specific map behavior.
 7. `app/ai.tsx` — local assistant behavior.
 8. `lib/hash.ts` — message identifier generation.
-
-## 11. Validation commands
-
-From the Expo app directory:
-
-```bash
-npm run typecheck
-npx expo-doctor@latest
-npx expo export --platform web
-```
-
-The Replit workflow is the normal way to keep the development server running while working in the workspace.
-
-## 12. Web App Version
-
-In addition to the React Native app, a lightweight Web App version has been developed to provide access via browser without requiring any installations.
-
-**Location:** `web app/` directory
-
-**Technology Stack:**
-- **Frontend:** Vanilla HTML, CSS (Glassmorphism UI), and JavaScript. No heavy frameworks, ensuring fast loading on slow networks.
-- **Backend:** Node.js + Express (`server.js`) handles static serving and REST API endpoints.
-- **State:** Browser `localStorage` for offline persistence (contacts, private chat history, user session).
-- **AI & Translation:** Powered by the **Groq API (Qwen3 8-27B model)** for real-time multilingual AI safety assistance and offline-fallback disaster translation.
-
-**Key Features:**
-- **Multilingual AI Assistant:** Understands and responds in 12+ Indian languages natively using Groq.
-- **Translator:** Translates critical disaster phrases instantly.
-- **Public & Private Chat:** Real-time synced public community board and simulated end-to-end encrypted private chats.
-- **Web3 Ready:** `ethers` dependency is installed and the `create alert` API endpoint mocks transaction anchoring.
-
-**Deployment:**
-The Web App is fully configured for deployment on **Render.com**.
-- `render.yaml` handles build (`npm install`) and start (`node server.js`) configurations automatically.
-- Environment variables (`GROQ_API_KEY`) are managed securely via the Render dashboard.

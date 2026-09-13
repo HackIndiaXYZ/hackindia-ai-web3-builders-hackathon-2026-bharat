@@ -21,34 +21,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function PublicChatScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { publicMessages, sendPublicMessage, isOffline } = useApp();
+  const { publicMessages, sendPublicMessage, isOffline, userProfile } = useApp();
 
-  // Start BLE scanning when the screen mounts — works even without internet.
+  // Ensure BLE scanning is active when viewing public chat.
   useEffect(() => {
-    setMeshMessageListener((msg: MeshMessage) => {
-      // Inject BLE-received messages into the public room.
-      // We call sendPublicMessage with a special prefix so the sender shows correctly.
-      // In a real implementation we'd have a separate `addMeshMessage` action.
-      sendPublicMessage(`[Mesh·${msg.sender}] ${msg.text}`);
-    });
-
-    startMeshScanning();
-
-    return () => {
-      stopMeshScanning();
-      removeMeshMessageListener();
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    void startMeshScanning();
   }, []);
 
   const handleSend = async (text: string) => {
     // Persist locally and push to server (handled by AppContext).
     sendPublicMessage(text);
-    // Also broadcast over BLE mesh for offline device-to-device delivery.
+    // Also broadcast over BLE mesh & P2P for offline device-to-device delivery.
     try {
-      await broadcastPublicMessage('You', text);
+      const senderName = userProfile?.name || 'You';
+      await broadcastPublicMessage(senderName, text);
     } catch {
-      // BLE unavailable — server delivery handled by sync.
+      // BLE unavailable — server/P2P delivery handled by sync.
     }
   };
 
@@ -97,8 +85,9 @@ export default function PublicChatScreen() {
 }
 
 function PublicBubble({ message, colors }: { message: Message; colors: ReturnType<typeof useColors> }) {
-  const mine = message.sender === 'You' || message.text.startsWith('[Mesh·You]');
-  const isMesh = message.sender === 'You' && message.text.startsWith('[Mesh·');
+  const { userProfile } = useApp();
+  const mine = message.sender === 'You' || (userProfile?.name && message.sender === userProfile.name);
+  const isMesh = message.text.startsWith('[Mesh·');
   return (
     <View style={[styles.row, mine && styles.mine]}>
       <View style={[styles.bubble, { backgroundColor: mine ? colors.sage : colors.card, borderColor: mine ? colors.sage : colors.border }]}>

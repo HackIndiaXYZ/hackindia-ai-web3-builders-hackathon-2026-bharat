@@ -20,6 +20,7 @@
     "@types/react": "~19.1.10",
     "@types/react-dom": "~19.1.7",
     "babel-plugin-react-compiler": "^19.0.0-beta-e993439-20250117",
+    "eas-cli": "^24.3.0",
     "typescript": "~5.9.2"
   },
   "dependencies": {
