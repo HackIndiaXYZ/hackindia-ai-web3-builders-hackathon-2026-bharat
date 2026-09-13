@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: bharat-aapda-prabandhan
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false   # You will set this manually in the Render dashboard

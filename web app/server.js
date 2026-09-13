@@ -116,50 +116,116 @@ app.post('/api/alerts', async (req, res) => {
 // AI & TRANSLATION ENDPOINTS (Phase 2)
 // ==========================================
 
-// TRANSLATE — Uses MyMemory free API (no key required, 5000 words/day)
+// TRANSLATE — Uses Groq (Qwen3) for accurate Indian language translation
+// Falls back to a helpful error if Groq is not configured
+const LANGUAGE_NAMES = {
+    'en': 'English', 'hi': 'Hindi', 'bn': 'Bengali', 'ta': 'Tamil',
+    'te': 'Telugu', 'mr': 'Marathi', 'gu': 'Gujarati', 'kn': 'Kannada',
+    'ml': 'Malayalam', 'or': 'Odia', 'pa': 'Punjabi', 'ur': 'Urdu',
+    'as': 'Assamese'
+};
+
 app.post('/api/translate', async (req, res) => {
     const { text, source, target } = req.body;
-    if (!text || !target) return res.status(400).json({ error: 'Missing text or target language.' });
+    if (!text || !target) return res.status(400).json({ error: 'Missing text or target.' });
 
-    const langPair = `${source || 'en'}|${target}`;
-    const encodedText = encodeURIComponent(text);
-    const url = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=${langPair}`;
+    const targetLangName = LANGUAGE_NAMES[target] || target;
+    const sourceLangName = LANGUAGE_NAMES[source || 'en'] || 'English';
 
-    try {
-        const protocol = url.startsWith('https') ? https : http;
-        const apiRes = await new Promise((resolve, reject) => {
-            protocol.get(url, (r) => {
-                let data = '';
-                r.on('data', chunk => data += chunk);
-                r.on('end', () => resolve(JSON.parse(data)));
-            }).on('error', reject);
-        });
+    // Use Groq for translation if available
+    if (groqClient) {
+        try {
+            const completion = await groqClient.chat.completions.create({
+                model: 'qwen/qwen3.8-27b',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are a professional translator specializing in Indian languages. 
+Translate the given text from ${sourceLangName} to ${targetLangName}.
+Rules:
+- Output ONLY the translated text. No explanations, no notes, no alternatives.
+- Preserve the original meaning exactly.
+- Use natural, everyday language.`
+                    },
+                    { role: 'user', content: text }
+                ],
+                max_tokens: 512,
+                temperature: 0.2
+            });
 
-        if (apiRes.responseStatus === 200) {
-            res.json({ translation: apiRes.responseData.translatedText });
-        } else {
-            res.status(500).json({ error: 'Translation API error.' });
+            const translation = completion.choices[0]?.message?.content?.trim();
+            if (translation) {
+                return res.json({ translation, source: 'groq' });
+            }
+        } catch (err) {
+            console.error('[Translate/Groq]', err.message);
         }
-    } catch (err) {
-        console.error('[Translate]', err.message);
-        res.status(500).json({ error: 'Failed to reach translation service.' });
     }
+
+    // Fallback: built-in offline dictionary for the 4 most critical disaster phrases
+    const offline = {
+        hi: {
+            "I need medical help immediately.": "मुझे तुरंत चिकित्सा सहायता चाहिए।",
+            "Where is the nearest relief camp?": "निकटतम राहत शिविर कहाँ है?",
+            "We are trapped inside the building.": "हम इमारत के अंदर फंसे हुए हैं।",
+            "Is it safe to go outside?": "क्या बाहर जाना सुरक्षित है?"
+        },
+        te: {
+            "I need medical help immediately.": "నాకు వెంటనే వైద్య సహాయం కావాలి.",
+            "Where is the nearest relief camp?": "సమీప సహాయక శిబిరం ఎక్కడ ఉంది?",
+            "We are trapped inside the building.": "మేము భవనంలో చిక్కుకున్నాం.",
+            "Is it safe to go outside?": "బయటకు వెళ్ళడం సురక్షితమేనా?"
+        },
+        ta: {
+            "I need medical help immediately.": "எனக்கு உடனடியாக மருத்துவ உதவி தேவை.",
+            "Where is the nearest relief camp?": "அருகிலுள்ள நிவாரண முகாம் எங்கே?",
+            "We are trapped inside the building.": "நாங்கள் கட்டிடத்தில் சிக்கிக்கொண்டோம்.",
+            "Is it safe to go outside?": "வெளியே செல்வது பாதுகாப்பானதா?"
+        }
+    };
+
+    const fallbackMap = offline[target];
+    if (fallbackMap && fallbackMap[text]) {
+        return res.json({ translation: fallbackMap[text], source: 'offline' });
+    }
+
+    res.status(503).json({ error: 'Translation service unavailable. Please set GROQ_API_KEY.' });
 });
 
+
 // AI CHAT — Uses Groq (llama-3.3-70b) with rule-based fallback
-const SYSTEM_PROMPT = `You are BAP Safety AI, an emergency response assistant for Bharat Aapda Prabandhan (India's disaster management app). 
+const SYSTEM_PROMPT = `You are BAP Safety AI, an emergency response assistant for Bharat Aapda Prabandhan (India's disaster management app).
 Your role is to provide clear, actionable, life-saving guidance in natural disasters and emergencies.
-Be concise, calm, and authoritative. Respond in the language the user writes in.
+Be concise, calm, and authoritative.
+
+CRITICAL LANGUAGE RULE: ALWAYS reply in the EXACT SAME LANGUAGE the user writes in. Do NOT switch languages.
+- If user writes in Hindi (हिंदी), reply fully in Hindi.
+- If user writes in Tamil (தமிழ்), reply fully in Tamil.
+- If user writes in Telugu (తెలుగు), reply fully in Telugu.
+- If user writes in Bengali (বাংলা), reply fully in Bengali.
+- If user writes in Marathi (मराठी), reply fully in Marathi.
+- If user writes in Gujarati (ગુજરાતી), reply fully in Gujarati.
+- If user writes in Kannada (ಕನ್ನಡ), reply fully in Kannada.
+- If user writes in Malayalam (മലയാളം), reply fully in Malayalam.
+- If user writes in Odia (ଓଡ଼ିଆ), reply fully in Odia.
+- If user writes in English, reply in English.
+- If a preferred language is specified in the system context, use that language.
+
 If the situation is life-threatening, always advise to contact emergency services (112 in India).`;
 
 app.post('/api/ai/chat', async (req, res) => {
-    const { message, history } = req.body;
+    const { message, history, language } = req.body;
+
+    // Build the messages array, optionally prepending a language instruction
+    const langInstruction = language && language !== 'auto'
+        ? `\n\nUser's preferred language for this session: ${language}. You MUST reply in ${language} only.`
+        : '';
 
     // --- Real Groq Path ---
     if (groqClient) {
         try {
             const messages = [
-                { role: 'system', content: SYSTEM_PROMPT },
+                { role: 'system', content: SYSTEM_PROMPT + langInstruction },
                 ...(Array.isArray(history) ? history : []),
                 { role: 'user', content: message }
             ];

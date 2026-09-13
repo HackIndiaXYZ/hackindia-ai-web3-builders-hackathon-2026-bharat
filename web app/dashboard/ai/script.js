@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatHistory = document.getElementById('chat-history');
     const sendBtn = document.getElementById('send-btn');
     const aiModeBadge = document.getElementById('ai-mode-badge');
+    const langSelect = document.getElementById('lang-select');
     
     // Conversation history for Groq context
     const conversationHistory = [];
@@ -73,7 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch('/api/ai/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, history: conversationHistory.slice(-10) })
+                body: JSON.stringify({
+                    message: text,
+                    history: conversationHistory.slice(-10),
+                    language: langSelect ? langSelect.value : 'auto'
+                })
             });
             const data = await res.json();
             document.getElementById(typingId)?.remove();
