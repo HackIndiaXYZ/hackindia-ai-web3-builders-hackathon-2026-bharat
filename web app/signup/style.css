@@ -1,0 +1,22 @@
+:root {
+    --primary-color: #bb86fc;
+    --bg-color: #121212;
+    --text-color: #ffffff;
+}
+.light-theme {
+    --primary-color: #6200ee;
+    --bg-color: #ffffff;
+    --text-color: #000000;
+}
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: Arial, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+}
+header {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--primary-color);
+}

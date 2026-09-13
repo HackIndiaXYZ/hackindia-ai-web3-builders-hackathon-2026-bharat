@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Map - Bharat Aapda Prabandhan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <link rel="stylesheet" href="../layout.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-animated"></div>
+    
+    <!-- Sidebar injected by layout.js -->
+
+    <div class="main-content">
+        <header class="topbar">
+            <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <h1>Safety Map</h1>
+            <div class="topbar-actions">
+                <button class="btn-icon" id="theme-toggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="page-container" style="display: flex; flex-direction: column; height: calc(100vh - 70px); padding-bottom: 0;">
+            <div class="map-controls glass-card">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All Reports</button>
+                    <button class="filter-btn safe" data-filter="safe">Safe Zones</button>
+                    <button class="filter-btn danger" data-filter="danger">Danger Zones</button>
+                </div>
+                <button class="btn-primary" id="locate-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+                    My Location
+                </button>
+            </div>
+
+            <div class="map-container glass-card" id="map">
+                <!-- Leaflet map injects here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <script src="../layout.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

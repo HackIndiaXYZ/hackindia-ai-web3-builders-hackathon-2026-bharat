@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translator - Bharat Aapda Prabandhan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../layout.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-animated"></div>
+    
+    <!-- Sidebar injected by layout.js -->
+
+    <div class="main-content">
+        <header class="topbar">
+            <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <h1>Emergency Translator</h1>
+            <div class="topbar-actions">
+                <span class="status-badge connected" id="network-status">● Online</span>
+                <button class="btn-icon" id="theme-toggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="page-container">
+            <div class="translator-layout">
+                
+                <div class="glass-card translator-card">
+                    <div class="card-header">
+                        <h3>Translate Phrase</h3>
+                        <div class="language-controls">
+                            <select id="source-lang" class="standalone-input lang-select">
+                                <option value="en">English</option>
+                            </select>
+                            <button class="btn-icon swap-btn" id="swap-btn">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L20 4M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+                            </button>
+                            <select id="target-lang" class="standalone-input lang-select">
+                                <option value="hi">Hindi</option>
+                                <option value="bn">Bengali</option>
+                                <option value="ta">Tamil</option>
+                                <option value="te">Telugu</option>
+                                <option value="mr">Marathi</option>
+                                <option value="gu">Gujarati</option>
+                                <option value="kn">Kannada</option>
+                                <option value="ml">Malayalam</option>
+                                <option value="pa">Punjabi</option>
+                                <option value="or">Odia</option>
+                                <option value="ur">Urdu</option>
+                                <option value="as">Assamese</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="translation-boxes">
+                        <div class="text-area-wrapper">
+                            <textarea id="source-text" placeholder="Type text here to translate... (e.g. 'I need help')"></textarea>
+                        </div>
+                        <div class="text-area-wrapper result-wrapper">
+                            <textarea id="target-text" placeholder="Translation will appear here..." readonly></textarea>
+                            <div class="loading-spinner hidden" id="translate-spinner">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary btn-full mt-4" id="translate-btn">Translate</button>
+                </div>
+
+                <div class="glass-card offline-phrases-card">
+                    <div class="card-header">
+                        <h3>Offline Disaster Phrases</h3>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    </div>
+                    <p class="subtitle">Quick access to essential phrases even without internet.</p>
+                    <ul class="phrase-list">
+                        <li class="phrase-item" data-text="I need medical help immediately.">
+                            <span>I need medical help immediately.</span>
+                            <button class="btn-sm btn-ghost">Use</button>
+                        </li>
+                        <li class="phrase-item" data-text="Where is the nearest relief camp?">
+                            <span>Where is the nearest relief camp?</span>
+                            <button class="btn-sm btn-ghost">Use</button>
+                        </li>
+                        <li class="phrase-item" data-text="We are trapped inside the building.">
+                            <span>We are trapped inside the building.</span>
+                            <button class="btn-sm btn-ghost">Use</button>
+                        </li>
+                        <li class="phrase-item" data-text="Is it safe to go outside?">
+                            <span>Is it safe to go outside?</span>
+                            <button class="btn-sm btn-ghost">Use</button>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="../layout.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

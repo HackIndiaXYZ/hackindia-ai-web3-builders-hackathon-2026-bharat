@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts - Bharat Aapda Prabandhan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../layout.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-animated"></div>
+    
+    <!-- Sidebar injected by layout.js -->
+
+    <div class="main-content">
+        <header class="topbar">
+            <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <h1>Emergency Alerts</h1>
+            <div class="topbar-actions">
+                <span class="status-badge connected">● Active</span>
+                <button class="btn-icon" id="theme-toggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="page-container">
+            <div class="alerts-layout">
+                
+                <!-- Left: List of Alerts -->
+                <div class="glass-card alerts-feed">
+                    <div class="card-header">
+                        <h3>Community Verified Alerts</h3>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <div class="alerts-list" id="alerts-list">
+                        <!-- Populated by JS -->
+                        <div class="skeleton-row"></div>
+                        <div class="skeleton-row"></div>
+                    </div>
+                </div>
+
+                <!-- Right: Create Alert Form -->
+                <div class="glass-card new-alert-card">
+                    <div class="card-header">
+                        <h3>Report an Emergency</h3>
+                    </div>
+                    <form id="new-alert-form">
+                        <div class="input-group">
+                            <label for="title">What happened?</label>
+                            <input type="text" id="title" class="standalone-input" placeholder="e.g. Flood on Main St" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="location">Location</label>
+                            <input type="text" id="location" class="standalone-input" placeholder="e.g. Unit 6, Bhubaneswar" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="severity">Severity Level</label>
+                            <select id="severity" class="standalone-input" required>
+                                <option value="Critical">🔴 Critical (Immediate Life Threat)</option>
+                                <option value="High">🟠 High (Severe Damage)</option>
+                                <option value="Medium" selected>🟡 Medium (Road Block/Damage)</option>
+                                <option value="Low">🟢 Low (Caution/Advisory)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-primary btn-full" id="submit-btn">Broadcast Alert</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../layout.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

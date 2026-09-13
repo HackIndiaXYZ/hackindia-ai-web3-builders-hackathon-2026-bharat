@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - Bharat Aapda Prabandhan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Reuse the signin stylesheet (identical design system) -->
+    <link rel="stylesheet" href="../signin/style.css">
+</head>
+<body>
+    <div class="bg-animated"></div>
+
+    <div class="container">
+        <header class="glass-header">
+            <div class="logo-area" style="cursor: pointer;" onclick="window.location.href='/'">
+                <div class="logo-icon"></div>
+                <h2>BAP</h2>
+            </div>
+            <nav>
+                <button id="theme-toggle" class="btn btn-ghost" title="Toggle Theme">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </nav>
+        </header>
+
+        <main class="hero-section">
+            <div class="glass-card auth-card">
+                <div class="auth-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <h1 class="gradient-text" style="font-size: 2.2rem; margin-bottom: 0.5rem;">Create Account</h1>
+                <p class="subtitle" style="margin-bottom: 2rem; font-size: 1rem;">Join BAP — your emergency companion, powered by the MST Blockchain.</p>
+
+                <form id="signup-form" novalidate>
+                    <!-- Full Name -->
+                    <div class="input-group">
+                        <label for="name">Full Name</label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            class="standalone-input"
+                            placeholder="e.g. Samridhi Parashar"
+                            autocomplete="name"
+                            required
+                        />
+                        <span class="input-error" id="name-error"></span>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="input-group">
+                        <label for="phone">Phone Number</label>
+                        <div class="input-wrapper">
+                            <span class="input-prefix">🇮🇳 +91</span>
+                            <input
+                                type="tel"
+                                id="phone"
+                                name="phone"
+                                placeholder="9876543210"
+                                maxlength="10"
+                                pattern="[0-9]{10}"
+                                autocomplete="tel"
+                                required
+                            />
+                        </div>
+                        <span class="input-error" id="phone-error"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="submit-btn">
+                        <span id="btn-text">Create Account</span>
+                        <svg id="btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        <svg id="btn-spinner" class="spinner hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    </button>
+                </form>
+
+                <p class="auth-switch">
+                    Already have an account? <a href="/signin">Sign in</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

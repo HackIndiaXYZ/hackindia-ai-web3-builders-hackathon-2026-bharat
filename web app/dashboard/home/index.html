@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Bharat Aapda Prabandhan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../layout.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-animated"></div>
+    
+    <!-- Sidebar injected by layout.js -->
+
+    <div class="main-content">
+        <header class="topbar">
+            <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <h1>Dashboard</h1>
+            <div class="topbar-actions">
+                <span class="status-badge connected">● Connected to Backend</span>
+                <button class="btn-icon" id="theme-toggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="page-container">
+            <div class="dashboard-grid">
+                
+                <!-- Weather Widget -->
+                <div class="glass-card weather-card">
+                    <div class="card-header">
+                        <h3>Local Weather</h3>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                    </div>
+                    <div class="weather-content" id="weather-content">
+                        <div class="temp-display">
+                            <span class="temp" id="weather-temp">--°</span>
+                            <span class="unit">C</span>
+                        </div>
+                        <p class="location" id="weather-loc">Locating...</p>
+                    </div>
+                </div>
+
+                <!-- Emergency Contacts -->
+                <div class="glass-card contacts-card">
+                    <div class="card-header">
+                        <h3>Emergency Contacts</h3>
+                        <button class="btn-sm btn-ghost">+ Add</button>
+                    </div>
+                    <ul class="contact-list" id="contact-list">
+                        <!-- Populated by JS -->
+                        <li class="empty-state">No emergency contacts saved yet.</li>
+                    </ul>
+                </div>
+
+                <!-- Recent Alerts -->
+                <div class="glass-card alerts-card span-2">
+                    <div class="card-header">
+                        <h3>Recent Alerts</h3>
+                        <a href="/dashboard/alerts" class="link-view-all">View All</a>
+                    </div>
+                    <div class="alerts-list" id="recent-alerts">
+                        <!-- Populated by JS -->
+                        <div class="skeleton-row"></div>
+                        <div class="skeleton-row"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../layout.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

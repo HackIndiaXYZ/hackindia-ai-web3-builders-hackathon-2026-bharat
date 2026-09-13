@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Bharat Aapda Prabandhan</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Ethers.js for Direct Web3 Integration -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js" defer></script>
+</head>
+<body>
+    <div class="bg-animated"></div>
+    
+    <div class="container">
+        <header class="glass-header">
+            <div class="logo-area">
+                <div class="logo-icon"></div>
+                <h2>BAP</h2>
+            </div>
+            <nav>
+                <button id="theme-toggle" class="btn btn-ghost" title="Toggle Theme">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </nav>
+        </header>
+
+        <main class="hero-section">
+            <div class="glass-card hero-content">
+                <div class="badge">MST Blockchain Powered</div>
+                <h1 class="gradient-text">Bharat Aapda Prabandhan</h1>
+                <p class="subtitle">
+                    An offline-first, decentralized disaster response application for India. 
+                    When cellular networks fail, we ensure communities remain connected, informed, and safe through BLE mesh networking and tamper-evident blockchain anchoring.
+                </p>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="window.location.href='/signin'">
+                        <span>Sign In</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/signup'">
+                        Create Account
+                    </button>
+                </div>
+                
+                <div class="features">
+                    <div class="feature">
+                        <div class="f-icon">📡</div>
+                        <span>Offline First</span>
+                    </div>
+                    <div class="feature">
+                        <div class="f-icon">🔗</div>
+                        <span>Tamper-Evident</span>
+                    </div>
+                    <div class="feature">
+                        <div class="f-icon">🤖</div>
+                        <span>Hybrid AI</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="../mst-client.js"></script>
+</body>
+</html>

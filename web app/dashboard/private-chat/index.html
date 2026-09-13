@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Chat - Bharat Aapda Prabandhan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../layout.css">
+    <link rel="stylesheet" href="../ai/style.css"> <!-- Reuse chat styles -->
+</head>
+<body>
+    <div class="bg-animated"></div>
+    
+    <!-- Sidebar injected by layout.js -->
+
+    <div class="main-content">
+        <header class="topbar">
+            <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <h1 id="chat-title">Private Chat</h1>
+            <div class="topbar-actions">
+                <span class="status-badge connected">🔒 E2E Encrypted</span>
+                <button class="btn-icon" id="theme-toggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="page-container chat-container-layout">
+            <div class="glass-card chat-card">
+                
+                <div class="chat-history" id="chat-history">
+                    <p style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin-top:1rem;">
+                        Messages are end-to-end encrypted (Simulated X25519 + AES-GCM). <br> No one outside of this chat, not even the server, can read them.
+                    </p>
+                    <!-- Messages will be populated by JS -->
+                </div>
+
+                <div class="chat-input-area">
+                    <form id="chat-form">
+                        <input type="text" id="chat-input" class="standalone-input" placeholder="Type an encrypted message..." autocomplete="off" required>
+                        <button type="submit" class="btn-primary send-btn" id="send-btn" title="Send Message">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform: rotate(45deg);"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="../layout.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
